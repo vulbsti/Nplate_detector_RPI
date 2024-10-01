@@ -60,7 +60,7 @@ def detector():
         if ret:
             results[frame_nmr] = {}
             # detect vehicles
-            detections = coco_model(frame,verbose=False,stream=False, device="cuda")[0]
+            detections = coco_model(frame,verbose=False,stream=False, device=config.Device)[0]
             detections_ = []
             for detection in detections.boxes.data.tolist():
                 x1, y1, x2, y2, score, class_id = detection
@@ -73,7 +73,7 @@ def detector():
             track_ids = mot_tracker.update(detections_)
             
             # detect license plates
-            license_plates = license_plate_detector(frame,verbose=False,stream=False,device="cuda")[0]
+            license_plates = license_plate_detector(frame,verbose=False,stream=False,device=config.Device)[0]
             for license_plate in license_plates.boxes.data.tolist():
                 x1, y1, x2, y2, score, class_id = license_plate
                 if config.Video_Output:
