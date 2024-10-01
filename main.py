@@ -47,6 +47,7 @@ vehicles = [2, 3, 5, 7, 67] #Yolo class ids for vehicles 67 for cellphones
 
 def detector():
     frame_nmr = -1
+    global results
     ret = True
     while ret:
         frame_nmr += 1
@@ -129,13 +130,35 @@ def detector():
                                 print("License plate not found")
                             else:
                                 print(result)
-
-
+                                
+        if config.Display:
+            cv2.imshow('frame', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+            
 if __name__ == '__main__':
-    detector()
-    if config.Video_Output:
-        output.release()
+    try:
+        detector()
+        if config.Video_Output:
+            output.release()
 
-    # write results
-    if store_in == "csv" and mode == "store":
-        write_csv(results, './test.csv')
+        # write results
+        if store_in == "csv" and mode == "store":
+            write_csv(results, './test.csv')
+        if config.Display:
+            cv2.destroyAllWindows()
+    
+    except KeyboardInterrupt:
+        print("Exiting")
+
+        if config.Video_Output:
+            output.release()
+        if config.CAPTURE_MODE == 'video' or config.CAPTURE_MODE == 'ipcam':
+            cap.release()
+        cv2.destroyAllWindows()
+        
+        # write results in case of interruption by user
+        if store_in == "csv" and mode == "store":
+            write_csv(results, './test.csv')
+            
+        exit(0)
