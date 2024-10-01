@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from util import *
 from config import Config
-from util import get_car, read_license_plate, search_license_plate, write_csv, search_license_plate_db, insert_data, create_database, VehicleTracker, trocr
+# from util import get_car, read_license_plate, search_license_plate, write_csv, search_license_plate_db, insert_data, create_database, VehicleTracker, trocr
 
 
 results = {}
