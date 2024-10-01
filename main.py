@@ -15,12 +15,10 @@ coco_model = YOLO(config.Yolo_model).to(config.Device)
 license_plate_detector = YOLO(config.liscenplate_model).to(config.Device)
 
 if config.RPI:
-    import RPi.GPIO as GPIO
-    GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(config.GPIO_PIN, GPIO.OUT)
-    GPIO.setup(config.GPIO_PIN2, GPIO.OUT)
-    GPIO.setup(config.GPIO_PIN3, GPIO.OUT)
+    from gpiozero import LED
+    Orange_led = LED(config.GPIO_PIN)
+    Green_led = LED(config.GPIO_PIN2)
+    Red_led = LED(config.GPIO_PIN3)
 
 # load video
 cap = cv2.VideoCapture(config.Capture_Device)
@@ -99,7 +97,7 @@ def detector():
 
                     if license_plate_text is not None:
                         if config.RPI:
-                            GPIO.output(config.GPIO_PIN, GPIO.HIGH)  # Use True if GPIO.HIGH is not working
+                           Orange_led.on()  # Use True if GPIO.HIGH is not working
                           
                         if config.LOGGING_ENABLED:
                             print(license_plate_text, license_plate_text_score)
@@ -117,13 +115,13 @@ def detector():
                             result = search_license_plate(search_csv, license_plate_text)
                             if result is None:
                                 if config.RPI:
-                                    GPIO.output(config.GPIO_PIN3, GPIO.HIGH)
+                                    Red_led.on()
                                     time.sleep(1)
                                 if config.LOGGING_ENABLED:
                                     print("License plate not found")
                             else:
                                 if config.RPI:
-                                    GPIO.output(config.GPIO_PIN2, GPIO.HIGH)
+                                    Green_led.on()
                                     time.sleep(1)
                                 if config.LOGGING_ENABLED:
                                     print(result)
@@ -149,21 +147,21 @@ def detector():
                             result = search_license_plate_db(db_path, license_plate_text)
                             if result is None:
                                 if config.RPI:
-                                    GPIO.output(config.GPIO_PIN3, GPIO.HIGH)
+                                    Red_led.on()
                                     time.sleep(1)
                                 if config.LOGGING_ENABLED:
                                     print("License plate not found")
                             else:
                                 if config.RPI:
-                                    GPIO.output(config.GPIO_PIN2, GPIO.HIGH)
+                                    Green_led.on()
                                     time.sleep(1)
                                 if config.LOGGING_ENABLED:
                                     print(result)
         
         if config.RPI:
-            GPIO.output(config.GPIO_PIN, GPIO.LOW)
-            GPIO.output(config.GPIO_PIN2, GPIO.LOW)
-            GPIO.output(config.GPIO_PIN3, GPIO.LOW)
+            Orange_led.off()
+            Red_led.off()
+            Green_led.off()
                                 
         if config.Display:
             cv2.imshow('frame', frame)

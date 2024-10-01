@@ -304,8 +304,7 @@ def validate_and_correct_plate(plate):
         return corrected_unique_id
 
     # Reconstruct the corrected license plate
-    corrected_plate = f"{state}{city_code}{
-        series_identifier}{corrected_unique_id}"
+    corrected_plate = f"{state}{city_code}{series_identifier}{corrected_unique_id}"
 
     return corrected_plate
 

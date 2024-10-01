@@ -32,12 +32,13 @@ Nplate/
 
 ```bash
 sudo apt-get update
-sudo apt-get install python3-pip python3-dev python-rpi.gpio
+sudo apt-get install python3-pip python3-dev-is-python3
 ```
 #### Install Pip Dependencies
 ```
 pip3 install -r requirements.txt
 ```
+If Facing error While installing pip dependencies on RPI use a virtual env
 
 
 
