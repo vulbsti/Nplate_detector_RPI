@@ -27,12 +27,12 @@ class Config:
     OCR_MODEL = 'ocr_model.pt'
 
     # RPI GPIO Configuration
-    USE_RPI = False # Make it True if you are using Raspberry Pi and Need to control LED
-    GPIO_PIN = 18  # GPIO pin for Red
-    GPIO_PIN2 = 17  # GPIO pin for Green
-    GPIO_PIN3 = 15  # GPIO pin for Yellow
+    RPI = False # Make it True if you are using Raspberry Pi and Need to control LED
+    GPIO_PIN = 18  # GPIO pin for Orange processing
+    GPIO_PIN2 = 17  # GPIO pin for Green found 
+    GPIO_PIN3 = 15  # GPIO pin for Red not found
     
 
     # To be Added
     DEBUG_MODE = False
-    LOGGING_ENABLED = False
+    LOGGING_ENABLED = True

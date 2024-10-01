@@ -4,7 +4,7 @@ import numpy as np
 from util import *
 from config import Config
 # from util import get_car, read_license_plate, search_license_plate, write_csv, search_license_plate_db, insert_data, create_database, VehicleTracker, trocr
-
+import time
 
 results = {}
 # Initialize
@@ -14,6 +14,13 @@ mot_tracker = VehicleTracker(maxDisappeared=50)
 coco_model = YOLO(config.Yolo_model).to(config.Device)
 license_plate_detector = YOLO(config.liscenplate_model).to(config.Device)
 
+if config.RPI:
+    import RPi.GPIO as GPIO
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(config.GPIO_PIN, GPIO.OUT)
+    GPIO.setup(config.GPIO_PIN2, GPIO.OUT)
+    GPIO.setup(config.GPIO_PIN3, GPIO.OUT)
 
 # load video
 cap = cv2.VideoCapture(config.Capture_Device)
@@ -83,32 +90,45 @@ def detector():
 
                     # crop license plate
                     license_plate_crop = frame[int(y1):int(y2), int(x1): int(x2), :]
-
                     # process license plate
                     license_plate_crop_gray = cv2.cvtColor(license_plate_crop, cv2.COLOR_BGR2GRAY)
-                    
                     #OTHER PREPROCESSING STEPS CAN BE ADDED HERE threshold not used as it doenst work well
                     _, license_plate_crop_thresh = cv2.threshold(license_plate_crop_gray, 64, 255, cv2.THRESH_BINARY_INV)
-
                     # read license plate number
                     license_plate_text, license_plate_text_score = read_license_plate(license_plate_crop_gray, trOCR, ocr_model)
 
                     if license_plate_text is not None:
-                        print(license_plate_text, license_plate_text_score)
+                        if config.RPI:
+                            GPIO.output(config.GPIO_PIN, GPIO.HIGH)  # Use True if GPIO.HIGH is not working
+                          
+                        if config.LOGGING_ENABLED:
+                            print(license_plate_text, license_plate_text_score)
                         
+                        # Store in CSV
                         if store_in == "csv" and mode == "store":
                             results[frame_nmr][car_id] = {'car': {'bbox': [xcar1, ycar1, xcar2, ycar2]},
                                                     'license_plate': {'bbox': [x1, y1, x2, y2],
                                                                         'text': license_plate_text,
                                                                         'bbox_score': score,
                                                                         'text_score': license_plate_text_score}}
+                            
+                        ## Search in CSV    
                         if store_in == "csv" and mode == "search":
                             result = search_license_plate(search_csv, license_plate_text)
                             if result is None:
-                                print("License plate not found")
+                                if config.RPI:
+                                    GPIO.output(config.GPIO_PIN3, GPIO.HIGH)
+                                    time.sleep(1)
+                                if config.LOGGING_ENABLED:
+                                    print("License plate not found")
                             else:
-                                print(result)
+                                if config.RPI:
+                                    GPIO.output(config.GPIO_PIN2, GPIO.HIGH)
+                                    time.sleep(1)
+                                if config.LOGGING_ENABLED:
+                                    print(result)
                                 
+                        # Store in SQLite        
                         if store_in == "sqlite" and mode == "store":
                             results = {
                                 frame_nmr: {                             # Frame number (as integer, stored as string here for dict key)
@@ -124,12 +144,26 @@ def detector():
                                         }   }   }   }
                             insert_data(db_path,results)
                             
+                        # Search in Sqlite    
                         if store_in == "sqlite" and mode == "search":
                             result = search_license_plate_db(db_path, license_plate_text)
                             if result is None:
-                                print("License plate not found")
+                                if config.RPI:
+                                    GPIO.output(config.GPIO_PIN3, GPIO.HIGH)
+                                    time.sleep(1)
+                                if config.LOGGING_ENABLED:
+                                    print("License plate not found")
                             else:
-                                print(result)
+                                if config.RPI:
+                                    GPIO.output(config.GPIO_PIN2, GPIO.HIGH)
+                                    time.sleep(1)
+                                if config.LOGGING_ENABLED:
+                                    print(result)
+        
+        if config.RPI:
+            GPIO.output(config.GPIO_PIN, GPIO.LOW)
+            GPIO.output(config.GPIO_PIN2, GPIO.LOW)
+            GPIO.output(config.GPIO_PIN3, GPIO.LOW)
                                 
         if config.Display:
             cv2.imshow('frame', frame)
