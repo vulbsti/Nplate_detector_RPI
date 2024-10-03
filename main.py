@@ -5,6 +5,9 @@ from util import *
 from config import Config
 # from util import get_car, read_license_plate, search_license_plate, write_csv, search_license_plate_db, insert_data, create_database, VehicleTracker, trocr
 import time
+import threading
+import queue
+
 
 results = {}
 # Initialize
@@ -13,6 +16,9 @@ mot_tracker = VehicleTracker(maxDisappeared=50)
 # load models
 coco_model = YOLO(config.Yolo_model).to(config.Device)
 license_plate_detector = YOLO(config.liscenplate_model).to(config.Device)
+
+frames_que = queue.Queue()
+
 
 if config.RPI:
     from gpiozero import LED
@@ -50,14 +56,29 @@ vehicles = [2, 3, 5, 7, 67] #Yolo class ids for vehicles 67 for cellphones
 
 # read frames
 
+def read_cap(cap,frames_que):
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            frames_que.put(None)
+        else:
+            frames_que.put(frame)
+            if config.Display:
+                cv2.imshow('frame', frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+    
+
+
+
 def detector():
     frame_nmr = -1
-    global results
-    ret = True
-    while ret:
+    global results,frames_que
+    while True:
         frame_nmr += 1
-        ret, frame = cap.read()
-        if ret:
+        frame = frames_que.get() 
+        
+        if frame is not None:
             results[frame_nmr] = {}
             # detect vehicles
             detections = coco_model(frame,verbose=False,stream=False, device=config.Device)[0]
@@ -162,15 +183,16 @@ def detector():
             Orange_led.off()
             Red_led.off()
             Green_led.off()
-                                
-        if config.Display:
-            cv2.imshow('frame', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+                                 
             
 if __name__ == '__main__':
     try:
-        detector()
+        
+        detector_thread = threading.Thread(target = detector)
+        detector_thread.start()
+        print ("start Processing thread")
+        read_cap(cap,frames_que)
+        print("CANT READ FRAMESSS")
         if config.Video_Output:
             output.release()
 
@@ -188,9 +210,13 @@ if __name__ == '__main__':
         if config.CAPTURE_MODE == 'video' or config.CAPTURE_MODE == 'ipcam':
             cap.release()
         cv2.destroyAllWindows()
+        frames_que.put(None)
         
         # write results in case of interruption by user
         if store_in == "csv" and mode == "store":
             write_csv(results, './test.csv')
-            
+
+        print("Processing remaining Frames... be patient or exit out of loop")
+        detector_thread.join()
         exit(0)
+        

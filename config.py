@@ -1,9 +1,13 @@
 
 class Config:
     # Mode for capture
-    CAPTURE_MODE = 'file'  # 'video' or 'image' or 'ipcam' or 'file'
-    Capture_Device = "/home/utka/DRONE/Drone_testing/number_plate/num3.mp4"  # 0 for default camera or use external camera /dev/cam1 or use IP-link for IPcamera
-    Display = False  # Display the output frame
+    CAPTURE_MODE = 'video'  # 'video' or 'image' or 'ipcam' or 'file'
+    # 0 for default camera or use external camera /dev/cam1 or use IP-link for IPcamera
+    #Example
+    # Capture_Device = "rtmp://10.2.33.223/live/stream1"
+    # Capture_Device = "/home/utka/DRONE/Drone_testing/number_plate/num3.mp4"
+    Capture_Device = 0
+    Display = True  # Display the input frame Not for output and it will be laggy
     
     # Database and path configuration
     DATABASE_PATH = 'license_plate.db'
