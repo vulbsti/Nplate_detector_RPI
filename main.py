@@ -203,7 +203,7 @@ if __name__ == '__main__':
             cv2.destroyAllWindows()
     
     except KeyboardInterrupt:
-        print("Exiting")
+        print("\n Exiting")
 
         if config.Video_Output:
             output.release()
@@ -218,5 +218,6 @@ if __name__ == '__main__':
 
         print("Processing remaining Frames... be patient or exit out of loop")
         detector_thread.join()
+        print("Processed")
         exit(0)
         
